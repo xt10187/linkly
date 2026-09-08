@@ -1,10 +1,16 @@
 import Fastify, { type FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { acortarUrl, resolverSlug, AppError, type LinkRepo } from './domain/acortar.js'
+import { listarRecientes } from './domain/recientes.js'
 import { crearMemoriaRepo } from './repos/memoriaRepo.js'
 
 const shortenSchema = z.object({
   url: z.string().min(1),
+})
+
+// R4 — `minutos` opcional; se coacciona a entero y se acota al rango permitido (1–1440).
+const recientesQuerySchema = z.object({
+  minutos: z.coerce.number().int().min(1).max(1440).optional(),
 })
 
 // Formato de error consistente: { error, code }
@@ -29,6 +35,7 @@ code{background:#eef;padding:.15rem .4rem;border-radius:4px}</style></head>
 <li><code>POST /shorten</code> <br> body: <code>{ "url": "https://ejemplo.com/una/pagina/larga" }</code> → devuelve el slug</li>
 <li><code>GET /:slug</code> → redirige (301) a la URL original y cuenta el click</li>
 <li><code>GET /api/links</code> → lista los links con su conteo de clicks</li>
+<li><code>GET /api/links/recientes?minutos=</code> → links creados en la última hora (ventana móvil, por defecto 60 min, <code>minutos</code> opcional 1–1440)</li>
 </ul>
 </body></html>`)
   })
@@ -57,6 +64,20 @@ code{background:#eef;padding:.15rem .4rem;border-radius:4px}</style></head>
   // Listado (para el HUD / demo). Antes de la ruta comodín /:slug.
   app.get('/api/links', async (_req, reply) => {
     const links = await repo.listar()
+    return reply.send(links)
+  })
+
+  // R1–R4 — Links de la última hora (ventana móvil configurable con `minutos`).
+  // Registrada ANTES de la comodín /:slug para que no la capture.
+  app.get('/api/links/recientes', async (req, reply) => {
+    const parsed = recientesQuerySchema.safeParse(req.query)
+    if (!parsed.success) {
+      return enviarError(reply, 400, 'VALIDACION', 'Parámetro minutos inválido (entero 1–1440)')
+    }
+    const links = await listarRecientes(repo, {
+      now: Date.now(),
+      minutos: parsed.data.minutos, // undefined → el dominio usa 60 por defecto
+    })
     return reply.send(links)
   })
 
