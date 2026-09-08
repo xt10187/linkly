@@ -1,0 +1,24 @@
+{
+  "name": "linkly",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Acortador de URLs minimalista — ejemplo de las superficies de Kiro",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "@types/node": "^22.9.0"
+  }
+}

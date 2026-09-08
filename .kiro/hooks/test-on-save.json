@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Test on Save",
+      "trigger": "PostFileSave",
+      "matcher": "src/.*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "npm run test"
+      }
+    }
+  ]
+}
